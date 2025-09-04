@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ระบบกายภาพบำบัดสำหรับผู้ป่วย Stroke</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>ระบบกายภาพบำบัด Stroke</h1>
+            <p>ระบบตรวจจับท่าทางและวิเคราะห์การเคลื่อนไหวด้วย AI</p>
+        </div>
+
+        <div class="main-content">
+            <div class="camera-section" id="camera-section">
+                <!-- Setup Phase -->
+                <div class="setup-phase" id="setup-phase">
+                    <h2>เตรียมความพร้อม</h2>
+                    <p>กรุณาเลือกท่ากายภาพบำบัดจากเมนูด้านข้าง จากนั้นกดเริ่มการตรวจจับ</p>
+                    <div class="phase-indicator">
+                        <div class="phase-dot"></div>
+                        <span>รอการเลือกท่ากายภาพ</span>
+                    </div>
+                </div>
+
+                <!-- Camera Phase -->
+                <div class="video-container" id="video-container" style="display: none;">
+                    <video class="input-video" id="input-video" autoplay muted playsinline></video>
+                    <canvas class="output-canvas" id="output-canvas"></canvas>
+                    
+                    <div class="detection-status waiting" id="detection-status">
+                        <i class="fas fa-search"></i> กำลังค้นหาบุคคลในกรอบภาพ...
+                    </div>
+                    
+                    <div class="realtime-info" id="realtime-info" style="display: none;">
+                        <div>มุมปัจจุบัน: <span id="current-angle">0°</span></div>
+                        <div>ความแม่นยำ: <span id="current-accuracy">0%</span></div>
+                        <div>จำนวนครั้ง: <span id="rep-count">0</span></div>
+                        <div>เฟส: <span id="movement-phase">rest</span></div>
+                    </div>
+                </div>
+
+                <div class="camera-controls">
+                    <button class="btn-icon" id="realtime-toggle" title="เปิด/ปิดการแสดงข้อมูลเรียลไทม์">
+                        <i class="fas fa-chart-line"></i>
+                    </button>
+                    <button class="btn-icon" id="snapshot-btn" title="บันทึกภาพ">
+                        <i class="fas fa-camera"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <!-- Exercise Selector -->
+                <div class="exercise-selector">
+                    <h3>เลือกท่ากายภาพบำบัด</h3>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label for="exercise-select" style="display: block; margin-bottom: 10px; font-weight: 500;">ท่ากายภาพบำบัด:</label>
+                        <select class="exercise-select" id="exercise-select">
+                            <option value="">-- เลือกท่ากายภาพบำบัด --</option>
+                            <option value="arm-raise-forward">ท่ายกแขนไปข้างหน้า</option>
+                            <option value="leg-forward">ท่าเหยียดเข่าตรง</option>
+                            <option value="trunk-sway">ท่าโยกลำตัวซ้าย-ขวา</option>
+                            <option value="neck-tilt">ท่าเอียงศีรษะซ้าย-ขวา</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Exercise Info & Stats -->
+                <div class="exercise-info">
+                    <h3>ข้อมูลการกายภาพบำบัด</h3>
+                    
+                    <div class="exercise-stats">
+                        <div class="stat-box">
+                            <div class="stat-value" id="rep-counter">0</div>
+                            <div class="stat-label">จำนวนครั้ง</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="accuracy-value">0%</div>
+                            <div class="stat-label">ความแม่นยำ</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="timer-display">00:00</div>
+                            <div class="stat-label">เวลา</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="score-display">0</div>
+                            <div class="stat-label">คะแนน</div>
+                        </div>
+                    </div>
+
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+
+                    <div class="feedback-text" id="feedback-text">
+                        เลือกท่าออกกำลังกายจากเมนูด้านบน จากนั้นกดเริ่มเพื่อเริ่มการตรวจจับ
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="start-btn" disabled>
+                        <i class="fas fa-play"></i>
+                        เริ่มการตรวจจับ
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+  <!-- External Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+
+  <!-- Application Scripts -->
+  <script src="js/main.js" defer></script>
+  <script src="js/canvas-display.js" defer></script>
+  <script src="js/pose-detection.js" defer></script>
+  <script src="js/stroke-exercises.js" defer></script>
+  <script src="js/ui-controller.js" defer></script>
+</body>
+</html>
